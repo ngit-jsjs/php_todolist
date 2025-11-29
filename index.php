@@ -132,6 +132,7 @@ body {
     grid-gap: 28px;
     height:fit-content;
     align-self: start; /* Bắt mỗi ô tự cao theo nội dung của nó */
+    align-items: start;
 }
 
 /* DAY BOX */
