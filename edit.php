@@ -1,21 +1,46 @@
 <?php
+session_start();
 require "config.php";
 
+// Kiểm tra đăng nhập
+if (!isset($_SESSION['user_id'])) {
+    header('Location: dangnhap.php');
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
 $id = $_GET["id"];
-$stmt = $conn->prepare("SELECT * FROM tasks WHERE id=?");
-$stmt->execute([$id]);
+
+// Kiểm tra quyền sở hữu task
+$stmt = $conn->prepare("SELECT * FROM tasks WHERE id=? AND user_id=?");
+$stmt->execute([$id, $user_id]);
 $task = $stmt->fetch(PDO::FETCH_ASSOC);
 
+if (!$task) {
+    header('Location: index.php');
+    exit;
+}
+
+$error = "";
+
 if ($_POST) {
-    $stmt = $conn->prepare("UPDATE tasks SET title=?, content=?, start_time=?, end_time=? WHERE id=?");
-    $stmt->execute([
-        $_POST["title"], 
-        $_POST["content"], 
-        $_POST["start"], 
-        $_POST["end"], 
-        $id
-    ]);
-    header("Location: index.php");
+    $title = $_POST["title"];
+    $content = $_POST["content"];
+    $start = $_POST["start"];
+    $end = $_POST["end"] ?: null;
+    
+    if (!$title) {
+        $error = "Thiếu tên công việc!";
+    } elseif ($end && strtotime($end) <= strtotime($start)) {
+        $error = "Hạn chót phải sau thời gian bắt đầu!";
+    } elseif ($end && strtotime($end) < time()) {
+        $error = "Hạn chót không được trước ngày hôm nay!";
+    } else {
+        $stmt = $conn->prepare("UPDATE tasks SET title=?, content=?, start_time=?, end_time=? WHERE id=? AND user_id=?");
+        $stmt->execute([$title, $content, $start, $end, $id, $user_id]);
+        header("Location: index.php");
+        exit();
+    }
 }
 ?>
 
@@ -27,110 +52,21 @@ if ($_POST) {
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
 
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: Poppins, sans-serif;
-        background: #fdf6ff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
-
-    .container {
-        background: white;
-        padding: 35px 40px;
-        border-radius: 22px;
-        width: 440px;
-        box-shadow: 0 10px 26px rgba(255, 115, 190, 0.25);
-        animation: fadeUp 0.45s ease;
-    }
-
-    h1 {
-        text-align: center;
-        margin-bottom: 25px;
-        color: #ff6fb8;
-        font-weight: 600;
-        font-size: 26px;
-    }
-
-    label {
-        font-weight: 500;
-        color: #555;
-    }
-
-    input, textarea {
-        width: 100%;
-        padding: 13px;
-        border-radius: 14px;
-        border: 1px solid #e7c7eb;
-        background: #fff6fd;
-        margin-top: 6px;
-        margin-bottom: 20px;
-        outline: none;
-        font-size: 15px;
-        transition: 0.25s;
-        box-shadow: 0 3px 10px rgba(255, 118, 188, 0.1);
-    }
-
-    input:focus, textarea:focus {
-        border-color: #ff87cd;
-        box-shadow: 0 0 12px rgba(255, 118, 188, 0.25);
-    }
-
-    textarea {
-        resize: none;
-        height: 100px;
-    }
-
-    button {
-        width: 100%;
-        padding: 13px;
-        border: none;
-        background: #ff71c5;
-        color: white;
-        font-size: 17px;
-        font-weight: 600;
-        border-radius: 14px;
-        cursor: pointer;
-        transition: 0.25s;
-        box-shadow: 0 4px 14px rgba(255, 118, 188, 0.25);
-    }
-
-    button:hover {
-        background: #ff4ebb;
-        transform: translateY(-2px);
-    }
-
-    .back {
-        display: block;
-        margin-top: 15px;
-        text-align: center;
-        text-decoration: none;
-        color: #777;
-        font-size: 14px;
-        transition: 0.2s;
-    }
-
-    .back:hover {
-        color: #ff4ebb;
-    }
-
-    @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 
-<body>
+<body class="add-page">
 
-<div class="container">
-
+<div class="add-container">
+    <button class="dark-toggle small" id="darkToggle">🌙</button>
     <h1>✏️ Sửa Công Việc</h1>
+
+    <?php if ($error): ?>
+        <div class="error-box">
+            <?= $error ?>
+        </div>
+    <?php endif ?>
 
     <form method="POST">
 
@@ -144,16 +80,33 @@ if ($_POST) {
         <input type="datetime-local" name="start" 
             value="<?= date('Y-m-d\TH:i', strtotime($task['start_time'])) ?>">
 
-        <label>Hạn chót:</label>
+        <label>Hạn chót: <small>(để trống = vô thời hạn)</small></label>
         <input type="datetime-local" name="end"
-            value="<?= date('Y-m-d\TH:i', strtotime($task['end_time'])) ?>" required>
+            value="<?= $task['end_time'] ? date('Y-m-d\TH:i', strtotime($task['end_time'])) : '' ?>">
 
         <button>Lưu thay đổi</button>
     </form>
 
-    <a href="index.php" class="back">← Quay lại</a>
+    <a href="index.php" class="back">← Quay lại danh sách</a>
 
 </div>
+
+<script>
+const darkToggle = document.getElementById("darkToggle");
+const body = document.body;
+
+if (localStorage.getItem("darkMode") === "true") {
+    body.classList.add("dark-mode");
+    darkToggle.textContent = "☀️";
+}
+
+darkToggle.addEventListener("click", () => {
+    body.classList.toggle("dark-mode");
+    const isDark = body.classList.contains("dark-mode");
+    darkToggle.textContent = isDark ? "☀️" : "🌙";
+    localStorage.setItem("darkMode", isDark);
+});
+</script>
 
 </body>
 </html>

@@ -1,8 +1,38 @@
-<?php require "config.php"; ?>
+<?php 
+session_start();
+require "config.php";
+
+// Kiểm tra đăng nhập
+if (!isset($_SESSION['user_id'])) {
+    header('Location: dangnhap.php');
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+?>
 
 <?php
-// lấy tất cả task
-$stmt = $conn->query("SELECT * FROM tasks ORDER BY start_time ASC");
+// số task mỗi trang
+$limit = 10;
+
+// lấy page hiện tại
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+
+$offset = ($page - 1) * $limit;
+
+// tổng số task của user để tính tổng số trang
+$stmt = $conn->prepare("SELECT COUNT(*) FROM tasks WHERE user_id = ?");
+$stmt->execute([$user_id]);
+$total = $stmt->fetchColumn();
+$totalPages = ceil($total / $limit);
+
+// lấy task của user theo giới hạn trang
+$stmt = $conn->prepare("SELECT * FROM tasks WHERE user_id = :user_id ORDER BY end_time IS NULL, end_time ASC, start_time ASC LIMIT :limit OFFSET :offset");
+$stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
+$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
 $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // gom nhóm theo ngày
@@ -12,6 +42,7 @@ foreach ($tasks as $t) {
     $group[$day][] = $t;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -24,187 +55,7 @@ foreach ($tasks as $t) {
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- CSS -->
-<style>
-/* GLOBAL */
-body {
-    margin: 0;
-    padding: 0;
-    background: #fdf6ff;
-    font-family: Poppins, sans-serif;
-    transition: 0.3s;
-}
-
-/* HEADER */
-.top {
-    position: sticky;
-    top: 0;
-    background: #ffffffcc;
-    backdrop-filter: blur(18px);
-    padding: 18px 35px;
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    box-shadow: 0 4px 15px rgba(255, 95, 177, 0.15);
-    z-index: 999;
-}
-
-.top h1 {
-    flex: 1;
-    font-size: 28px;
-    color: #ff66c4;
-    font-weight: 600;
-}
-
-/* BUTTON */
-.btn {
-    text-decoration: none;
-    background: #ff75d1;
-    padding: 10px 16px;
-    border-radius: 14px;
-    color: #fff;
-    font-size: 15px;
-    transition: 0.25s;
-    box-shadow: 0 4px 12px rgba(255, 105, 189, 0.25);
-}
-
-.btn:hover {
-    background: #ff48c2;
-    transform: translateY(-2px);
-}
-
-.btn.small {
-    padding: 6px 10px;
-    font-size: 13px;
-    border-radius: 10px;
-}
-
-.btn.red {
-    background: #ff5f5f;
-}
-
-.btn.red:hover {
-    background: #ff4040;
-}
-
-/* SEARCH */
-/* #searchInput {
-    padding: 12px 16px;
-    border-radius: 14px;
-    border: none;
-    outline: none;
-    width: 240px;
-    background: #ffe9f8;
-    box-shadow: 0 2px 10px rgba(255, 115, 180, 0.15);
-    font-size: 15px;
-} */
-.filter-bar {
-    display: flex;
-    gap: 12px;
-    background: #ffffffcc;
-    padding: 12px 18px;
-    border-radius: 14px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 3px 12px rgba(255, 100, 180, 0.15);
-}
-
-.filter-bar input,
-.filter-bar select {
-    padding: 10px 14px;
-    border-radius: 12px;
-    border: 1px solid #f4cfee;
-    outline: none;
-    font-size: 14px;
-    background: #fff6fd;
-    box-shadow: 0 2px 8px rgba(255, 110, 190, 0.15);
-}
-
-.filter-bar input:focus,
-.filter-bar select:focus {
-    border-color: #ff71d1;
-}
-
-
-/* GRID DAY CARDS */
-.day-container {
-    padding: 35px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-    grid-gap: 28px;
-    height:fit-content;
-    align-self: start; /* Bắt mỗi ô tự cao theo nội dung của nó */
-    align-items: start;
-}
-
-/* DAY BOX */
-.day-box {
-    background: #fff;
-    padding: 25px;
-    border-radius: 22px;
-    box-shadow: 0px 8px 25px rgba(255, 95, 177, 0.2);
-    animation: fadeUp 0.4s ease;
-    position: relative;
-    transition: 0.25s;
-    align-items: start;
-}
-
-.day-box:hover {
-    transform: translateY(-5px);
-}
-
-.day-box h2 {
-    margin: 0;
-    margin-bottom: 10px;
-    font-weight: 600;
-    font-size: 20px;
-    color: #ff54bd;
-}
-
-/* DELETE DAY */
-.del-day {
-    position: absolute;
-    right: 20px;
-    top: 22px;
-    color: #ff3e67;
-    font-size: 13px;
-    text-decoration: none;
-    transition: 0.15s;
-}
-
-.del-day:hover {
-    transform: scale(1.1);
-}
-
-/* TASK CARD */
-.task {
-    background: #fff0fa;
-    padding: 17px;
-    border-radius: 18px;
-    margin-bottom: 14px;
-    box-shadow: 0px 4px 12px rgba(255, 115, 180, 0.2);
-    transition: 0.2s;
-}
-
-.task:hover {
-    transform: translateY(-4px);
-}
-
-.task.done {
-    background: #d7ffe4;
-}
-
-/* TASK TITLE */
-.task h3 {
-    margin: 0 0 8px 0;
-    font-size: 17px;
-    color: #ff48c8;
-}
-
-/* ANIMATIONS */
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-</style>
+<link rel="stylesheet" href="style.css">
 
 <script>
 function search() {
@@ -218,12 +69,10 @@ function search() {
 
 <body>
 
-<script src="script.js"></script>
-
+<div class="header-wrapper">
 <div class="top">
-    <h1>🌸 Todo List Cute Premium</h1>
-
-    <a class="btn" href="add.php">+ Thêm công việc</a>
+    <h1>🌸 Todo List</h1>
+    <button class="main-dark-toggle" id="mainDarkToggle">🌙</button>
 
    <div class="filter-bar">
     <input type="text" id="filter_name" placeholder="🔍 Tên công việc...">
@@ -234,17 +83,30 @@ function search() {
 
     <input type="time" id="filter_time">
 
-    <select id="filter_status">
-        <option value="">-- Trạng thái --</option>
-        <option value="overdue">📛 Quá hạn</option>
-        <option value="soon">⏳ Sắp đến hạn</option>
-        <option value="new">🆕 Mới thêm</option>
-        <option value="done">✅ Hoàn thành</option>
-    </select>
+    <div class="custom-select">
+        <div class="select-selected" id="filter_status_display">-- Trạng thái --</div>
+        <input type="hidden" id="filter_status" value="">
+        <ul class="select-items">
+            <li data-value="">-- Trạng thái --</li>
+            <li data-value="overdue">📛 Quá hạn</li>
+            <li data-value="soon">⏳ Sắp đến hạn</li>
+            <li data-value="in_progress">🔄 Đang tiến hành</li>
+            <li data-value="no_deadline">♾️ Vô thời hạn</li>
+            <li data-value="new">🆕 Mới thêm</li>
+            <li data-value="done">✅ Hoàn thành</li>
+        </ul>
+    </div>
 
-    <button class="btn" onclick="applyFilter()">Lọc</button>
+    <button styl class="btn" onclick="applyFilter()">Lọc</button>
 </div>
 
+</div>
+
+<div class="menu-bar">
+    <a href="add.php" class="menu-item">+ Thêm công việc</a>
+    <a href="logout.php" class="menu-item">Đăng xuất</a>
+    <a href="lab.php" class="menu-item">Lab thực hành</a>
+</div>
 </div>
 
 <div class="day-container">
@@ -256,53 +118,98 @@ function search() {
 
         <a href="delete_day.php?day=<?= urlencode($day) ?>" class="del-day">Xóa ngày</a>
 
+        <div class="task-container">
         <?php foreach ($items as $t): ?>
-            <div class="task <?= ($t['progress'] == 100 ? 'done' : '') ?>">
+            <div class="task <?php 
+                if ($t['progress'] == 100) echo 'done';
+                elseif ($t['end_time'] && strtotime($t['end_time']) <= time() && $t['progress'] < 100) echo 'overdue';
+            ?>">
             <?php
             // tính trạng thái
-            $now = date("Y-m-d H:i:s");
+            $now = time();
             $statusLabel = "";
 
+            $isNew = date("Y-m-d", strtotime($t["created_at"])) == date("Y-m-d");
+            
             if ($t["progress"] == 100) {
                 $statusLabel = "✅ Hoàn thành";
-            } else if ($t["end_time"] < $now) {
+            } else if (!$t["end_time"]) {
+                $statusLabel = "♾️ Vô thời hạn";
+            } else if (strtotime($t["end_time"]) < $now) {
                 $statusLabel = "📛 Quá hạn";
             } else {
-                // còn hạn → kiểm tra gần hết hạn chưa
                 $timeDiff = strtotime($t["end_time"]) - time();
-
-                if ($timeDiff <= 3600 * 3) { // <= 3 giờ
+                if ($timeDiff <= 3600 * 24 * 3) {
                     $statusLabel = "⏳ Sắp đến hạn";
                 } else {
-                    $statusLabel = "🆕 Đang tiến hành";
+                    $statusLabel = "🔄 Đang tiến hành";
                 }
+            }
+            
+            if ($isNew) {
+                $statusLabel = "🆕 Mới thêm - " . $statusLabel;
             }
         ?>
 
                 <h3>📝 <?= htmlspecialchars($t['title']) ?></h3>
 
                 <p><?= nl2br(htmlspecialchars($t['content'])) ?></p>
-                <p>⏰ Bắt đầu: <b><?= $t['start_time'] ?></b></p>
-                <p>🚀 Hạn chót: <b><?= $t['end_time'] ?></b></p>
-                <p>🎯 Tiến độ: <b><?= $t['progress'] ?>%</b></p>
+                <p>⏰ Bắt đầu: <b><?= date('d/m/Y H:i', strtotime($t['start_time'])) ?></b></p>
+                <p>🚀 Hạn chót: <b><?= $t['end_time'] ? date('d/m/Y H:i', strtotime($t['end_time'])) : '♾️ Vô thời hạn' ?></b></p>
+                <p>🎯 Tiến độ: <b id="progress-text-<?= $t['id'] ?>"><?= $t['progress'] ?>%</b></p>
+                <form action="toggle.php" method="POST" style="margin: 5px 0; display: flex; gap: 8px; align-items: center;">
+                    <input type="hidden" name="id" value="<?= $t['id'] ?>">
+                    <input type="range" name="progress" value="<?= $t['progress'] ?>" min="0" max="100" 
+                           oninput="document.getElementById('progress-text-<?= $t['id'] ?>').textContent = this.value + '%'" style="flex: 1;">
+                    <button type="submit" class="btn small" style="margin: 0;">Lưu</button>
+                </form>
                 <p>📌 Trạng thái: <b><?= $statusLabel ?></b></p>
 
                 
                 <a href="edit.php?id=<?= $t['id'] ?>" class="btn small">Sửa</a>
                 <a href="delete.php?id=<?= $t['id'] ?>" class="btn small red">Xóa</a>
 
-                <form action="toggle.php" method="POST" style="margin-top: 8px;">
-                    <input type="hidden" name="id" value="<?= $t['id'] ?>">
-                    <input type="range" name="progress" value="<?= $t['progress'] ?>" min="0" max="100" onchange="this.form.submit()">
-                </form>
-
             </div>
         <?php endforeach ?>
-
+        </div>
     </div>
 <?php endforeach ?>
 
 </div>
+<div class="pagination">
+    <?php if ($page > 1): ?>
+        <a href="?page=<?= $page-1 ?>">«</a>
+    <?php endif ?>
+
+    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+        <a href="?page=<?= $i ?>" class="<?= ($i == $page ? 'active' : '') ?>">
+            <?= $i ?>
+        </a>
+    <?php endfor ?>
+
+    <?php if ($page < $totalPages): ?>
+        <a href="?page=<?= $page+1 ?>">»</a>
+    <?php endif ?>
+</div>
+
+<script>
+const mainDarkToggle = document.getElementById("mainDarkToggle");
+const body = document.body;
+
+if (localStorage.getItem("darkMode") === "true") {
+    body.classList.add("dark-mode");
+    mainDarkToggle.textContent = "☀️";
+}
+
+mainDarkToggle.addEventListener("click", () => {
+    body.classList.toggle("dark-mode");
+    const isDark = body.classList.contains("dark-mode");
+    mainDarkToggle.textContent = isDark ? "☀️" : "🌙";
+    localStorage.setItem("darkMode", isDark);
+});
+</script>
+
+<script src="script.js"></script>
 
 </body>
 </html>
