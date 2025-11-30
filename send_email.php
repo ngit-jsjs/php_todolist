@@ -4,6 +4,9 @@ use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php';
 
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 function sendVerificationEmail($email, $token) {
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
@@ -13,15 +16,15 @@ function sendVerificationEmail($email, $token) {
     
     try {
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = $_ENV['SMTP_HOST'];
         $mail->SMTPAuth = true;
-        $mail->Username = 'ngtien1924@gmail.com'; // VD: ngtien1924@gmail.com
-        $mail->Password = 'jctgifyzitxvmooy'; // App Password 16 ký tự (không có khoảng trắng)
+        $mail->Username = $_ENV['SMTP_USERNAME'];
+        $mail->Password = $_ENV['SMTP_PASSWORD'];
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+        $mail->Port = $_ENV['SMTP_PORT'];
         $mail->CharSet = 'UTF-8';
         
-        $mail->setFrom('ngtien1924@gmail.com', 'Todo List');
+        $mail->setFrom($_ENV['SMTP_FROM_EMAIL'], $_ENV['SMTP_FROM_NAME']);
         $mail->addAddress($email);
         
         $mail->isHTML(true);
