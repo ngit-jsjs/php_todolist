@@ -1,6 +1,6 @@
 <?php
 session_start();
-require "config.php";
+require "../includes/config.php";
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
@@ -9,26 +9,15 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$id = $_GET["id"];
-
-// Kiểm tra quyền sở hữu task
-$stmt = $conn->prepare("SELECT * FROM tasks WHERE id=? AND user_id=?");
-$stmt->execute([$id, $user_id]);
-$task = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$task) {
-    header('Location: index.php');
-    exit;
-}
 
 $error = "";
 
 if ($_POST) {
     $title = $_POST["title"];
     $content = $_POST["content"];
-    $start = $_POST["start"];
+    $start = $_POST["start"] ?: date("Y-m-d H:i:s");
     $end = $_POST["end"] ?: null;
-    
+
     if (!$title) {
         $error = "Thiếu tên công việc!";
     } elseif ($end && strtotime($end) <= strtotime($start)) {
@@ -36,8 +25,8 @@ if ($_POST) {
     } elseif ($end && strtotime($end) < time()) {
         $error = "Hạn chót không được trước ngày hôm nay!";
     } else {
-        $stmt = $conn->prepare("UPDATE tasks SET title=?, content=?, start_time=?, end_time=? WHERE id=? AND user_id=?");
-        $stmt->execute([$title, $content, $start, $end, $id, $user_id]);
+        $stmt = $conn->prepare("INSERT INTO tasks (user_id, title, content, start_time, end_time, progress) VALUES (?, ?, ?, ?, ?, 0)");
+        $stmt->execute([$user_id, $title, $content, $start, $end]);
         header("Location: index.php");
         exit();
     }
@@ -48,22 +37,20 @@ if ($_POST) {
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Sửa công việc</title>
-
+<title>Thêm công việc</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
-
-<link rel="stylesheet" href="style.css">
-
+<link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body class="add-page">
 
 <div class="add-container">
-    <button class="dark-toggle small" id="darkToggle">🌙</button>
-    <h1> Sửa Công Việc</h1>
+    <button class="dark-toggle" id="darkToggle" style="width: 26px; height: 26px; font-size: 13px; top: 15px; right: 15px; padding: 0;">🌙</button>
+    
+    <h1>➕ Thêm Công Việc</h1>
 
     <?php if ($error): ?>
-        <div class="error-box">
+        <div style="background: #ffe4e4; color: #d63031; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
             <?= $error ?>
         </div>
     <?php endif ?>
@@ -71,45 +58,28 @@ if ($_POST) {
     <form method="POST">
 
         <label>Tên công việc:</label>
-        <input name="title" value="<?= htmlspecialchars($task['title']) ?>" required>
+        <input name="title" placeholder="Nhập tên công việc..." value="<?= htmlspecialchars($_POST['title'] ?? '') ?>" required>
 
         <label>Nội dung:</label>
-        <textarea name="content"><?= htmlspecialchars($task['content']) ?></textarea>
+        <textarea name="content" placeholder="Nội dung chi tiết..."><?= htmlspecialchars($_POST['content'] ?? '') ?></textarea>
 
         <label>Bắt đầu:</label>
-        <input type="datetime-local" name="start" id="startInput"
-            value="<?= date('Y-m-d\TH:i', strtotime($task['start_time'])) ?>">
+        <input type="datetime-local" name="start" id="startInput" value="<?= htmlspecialchars($_POST['start'] ?? date('Y-m-d\TH:i')) ?>">
 
         <label>Số ngày làm: <small>(tự động tính hạn chót)</small></label>
         <input type="number" id="daysInput" min="0" placeholder="VD: 7 ngày (0 = trong ngày)">
 
         <label>Hạn chót: <small>(để trống = vô thời hạn, phải sau thời gian bắt đầu)</small></label>
-        <input type="datetime-local" name="end" id="endInput"
-            value="<?= $task['end_time'] ? date('Y-m-d\TH:i', strtotime($task['end_time'])) : '' ?>">
+        <input type="datetime-local" name="end" id="endInput" value="<?= htmlspecialchars($_POST['end'] ?? '') ?>">
 
-        <button>Lưu thay đổi</button>
+        <button>Thêm công việc</button>
     </form>
 
     <a href="index.php" class="back">← Quay lại danh sách</a>
-
 </div>
 
+<script src="../script.js"></script>
 <script>
-const darkToggle = document.getElementById("darkToggle");
-const body = document.body;
-
-if (localStorage.getItem("darkMode") === "true") {
-    body.classList.add("dark-mode");
-    darkToggle.textContent = "☀️";
-}
-
-darkToggle.addEventListener("click", () => {
-    body.classList.toggle("dark-mode");
-    const isDark = body.classList.contains("dark-mode");
-    darkToggle.textContent = isDark ? "☀️" : "🌙";
-    localStorage.setItem("darkMode", isDark);
-});
-
 const daysInput = document.getElementById("daysInput");
 const startInput = document.getElementById("startInput");
 const endInput = document.getElementById("endInput");
@@ -121,6 +91,7 @@ daysInput.addEventListener("input", () => {
     const start = startInput.value ? new Date(startInput.value) : new Date();
     
     if (days === 0) {
+        // Trong ngày: giữ nguyên ngày, chỉ set giờ cuối ngày (23:59)
         start.setHours(23, 59, 0, 0);
     } else {
         start.setDate(start.getDate() + days);

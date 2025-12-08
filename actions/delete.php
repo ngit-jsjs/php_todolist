@@ -1,10 +1,10 @@
 <?php
 session_start();
-require "config.php";
+require "./includes/config.php";
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
-    header('Location: dangnhap.php');
+    header('Location: ./pages/dangnhap.php');
     exit;
 }
 
@@ -23,7 +23,7 @@ if ($from == 'search') {
             $params[] = $key . '=' . urlencode($_GET[$key]);
         }
     }
-    header("Location: search.php?" . implode('&', $params));
+    header("Location: ./pages/search.php?" . implode('&', $params));
 } else {
-    header("Location: index.php");
+    header("Location: ./pages/index.php");
 }

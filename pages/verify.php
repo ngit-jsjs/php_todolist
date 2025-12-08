@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once '../includes/config.php';
 
 $message = '';
 $success = false;
@@ -29,12 +29,12 @@ if (isset($_GET['token'])) {
 <head>
     <meta charset="UTF-8">
     <title>Xác thực Email</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="login-page">
-<img src="./icon/background.jpg" class="login-bg-left">
-<img src="./icon/background2.jpg" class="login-bg-right">
+<img src="../assets/icon/background.jpg" class="login-bg-left">
+<img src="../assets/icon/background2.jpg" class="login-bg-right">
 
 
 <div class="login-wrapper">
@@ -49,10 +49,10 @@ if (isset($_GET['token'])) {
         <?= $message ?>
     </p>
     
-    <a href="dangnhap.php" class="login-btn"><img class="submit-icon" src="./icon/heart (1).png" > Đăng nhập ngay <img class="submit-icon" src="./icon/heart (1).png" ></a>
+    <a href="dangnhap.php" class="login-btn"><img class="submit-icon" src="../assets/icon/heart (1).png" > Đăng nhập ngay <img class="submit-icon" src="../assets/icon/heart (1).png" ></a>
 </div>
 
-<script src="script.js"></script>
+<script src="../script.js"></script>
 
 </body>
 </html>

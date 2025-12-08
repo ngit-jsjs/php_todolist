@@ -1,6 +1,6 @@
 <?php 
 session_start();
-require "config.php";
+require "../includes/config.php";
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
@@ -60,7 +60,7 @@ foreach ($tasks as $t) {
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- CSS -->
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 
 <script>
 function search() {
@@ -77,7 +77,7 @@ function search() {
 <div class="header-wrapper">
 <div class="top">
     
-    <h1><a style="display: flex; align-items: center; gap:5px; padding:5px; text-decoration: none;" href="./index.php"><img style="width: auto; height: 70px;" class="icon-user" src="./animation/RetroCat.png" alt=""> <h1 class="header-text">Ticky-Tock</h1></a></h1>
+    <h1><a style="display: flex; align-items: center; gap:5px; padding:5px; text-decoration: none;" href="./index.php"><img style="width: auto; height: 70px;" class="icon-user" src="../assets/animation/RetroCat.png" alt=""> <h1 class="header-text">Ticky-Tock</h1></a></h1>
     <button class="main-dark-toggle" id="mainDarkToggle">🌙</button>
 
    <div class="filter-bar">
@@ -109,8 +109,8 @@ function search() {
 </div>
 
 <div class="menu-bar">
-    <span class="menu-item" style="cursor: pointer; align-items: center; display: flex; gap: 5px;"> <img class="icon-user" src="./animation/Box3.png" alt=""> <?= htmlspecialchars($username) ?></span>
-    <a href="add.php" class="menu-item">+ Thêm công việc</a>
+    <span class="menu-item" style="cursor: pointer; align-items: center; display: flex; gap: 5px;"> <img class="icon-user" src="../assets/animation/Box3.png" alt=""> <?= htmlspecialchars($username) ?></span>
+    <a href="add.php" class="menu-item">Thêm công việc</a>
     <a href="logout.php" class="menu-item">Đăng xuất</a>
     <a href="lab.php" class="menu-item">Lab thực hành</a>
 </div>
@@ -122,7 +122,7 @@ function search() {
     <div class="day-box">
         
         <h2 style="display: flex;gap: 8px; align-items: center;">
-            <img class="calender-icon" src="./icon/calender.png"> <?= $day ?>
+            <img class="calender-icon" src="../assets/icon/calender.png"> <?= $day ?>
         </h2>
 
         <a href="delete_day.php?day=<?= urlencode($day) ?>" class="del-day">Xóa ngày</a>
@@ -168,18 +168,18 @@ function search() {
             }
         ?>
 
-                <h3 style="display: flex;gap: 5px; align-items: center;"><img style="width: 30px;height: 30px;" class="small-icon" src="./icon/task.png" alt=""> 
+                <h3 style="display: flex;gap: 5px; align-items: center;"><img style="width: 30px;height: 30px;" class="small-icon" src="../assets/icon/task.png" alt=""> 
                     <?= htmlspecialchars($t['title']) ?>
                 </h3>
 
                 <p> <?= nl2br(htmlspecialchars($t['content'])) ?> </p>
                 <p style="display: flex;gap: 5px; align-items: center;">
-                    <img class="small-icon" src="./icon/clock.png" alt=""> 
+                    <img class="small-icon" src="../assets/icon/clock.png" alt=""> 
                     Bắt đầu: 
                     <b><?= date('d/m/Y H:i', strtotime($t['start_time'])) ?></b>
                 </p>
                 <p style="display: flex;gap: 5px; align-items: center;">
-                    <img style="width: 22px;height: 22px;" class="small-icon" src="./icon/rocket.png" alt=""> 
+                    <img style="width: 22px;height: 22px;" class="small-icon" src="../assets/icon/rocket.png" alt=""> 
 
                     Hạn chót: 
 
@@ -199,7 +199,7 @@ function search() {
 
                     <p style="display: flex;gap: 5px; align-items: center;">
 
-                        <img class="small-icon" src="./icon/calende 2.png"> 
+                        <img class="small-icon" src="../assets/icon/calende 2.png"> 
                         Còn lại: 
                         <b style="color: <?= $timeDiff < 0 ? '#d63031' : ($absTime <= 259200 ? '#fdcb6e' : '#00b894') ?>">
                             <?= $timeDiff < 0 ? 'Trễ ' . $timeText : $timeText ?></b>
@@ -222,7 +222,7 @@ function search() {
                 </form>
 
                 <p style="display: flex;gap: 5px; align-items: center;">
-                    <img style="width: 20px;height: 20px;" class="small-icon" src="./icon/pin.png" alt=""> 
+                    <img style="width: 20px;height: 20px;" class="small-icon" src="../assets/icon/pin.png" alt=""> 
                     
                     Trạng thái: <?= $statusLabel ?>
                 </p>
@@ -255,7 +255,7 @@ function search() {
     <?php endif ?>
 </div>
 
-<script src="script.js"></script>
+<script src="../script.js"></script>
 
 </body>
 </html>
