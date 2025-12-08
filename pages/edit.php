@@ -94,7 +94,7 @@ if ($_POST) {
 
 </div>
 
-<script src="../script.js"></script>
+<script src="../assets/js/script.js"></script>
 <script>
 const daysInput = document.getElementById("daysInput");
 const startInput = document.getElementById("startInput");

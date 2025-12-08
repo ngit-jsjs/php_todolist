@@ -78,7 +78,7 @@ if ($_POST) {
     <a href="index.php" class="back">← Quay lại danh sách</a>
 </div>
 
-<script src="../script.js"></script>
+<script src="../assets/js/script.js"></script>
 <script>
 const daysInput = document.getElementById("daysInput");
 const startInput = document.getElementById("startInput");

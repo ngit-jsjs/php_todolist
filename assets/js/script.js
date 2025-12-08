@@ -1,0 +1,102 @@
+function applyFilter() {
+    let name = document.getElementById("filter_name").value.trim();
+    let day = document.getElementById("filter_day").value;
+    let month = document.getElementById("filter_month").value;
+    let year = document.getElementById("filter_year").value;
+    let time = document.getElementById("filter_time").value;
+    let status = document.getElementById("filter_status").value;
+
+    let query = [];
+    if (name) query.push("name=" + encodeURIComponent(name));
+    if (day) query.push("day=" + day);
+    if (month) query.push("month=" + month);
+    if (year) query.push("year=" + year);
+    if (time) query.push("time=" + time);
+    if (status) query.push("status=" + status);
+    window.location.href = "search.php?" + query.join("&");
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode");
+}
+
+function togglePassword() {
+    const pwd = document.getElementById("password");
+    const icon = document.getElementById("toggleIcon");
+
+    if (pwd.type === "password") {
+        pwd.type = "text";
+        icon.innerHTML = `<img src="./icon/closeye.png" class="eye-icon">`;
+    } else {
+        pwd.type = "password";
+        icon.innerHTML = `<img src="./icon/eye (1).png" class="eye-icon">`;
+    }
+}
+
+const loginCard = document.getElementById("loginCard");
+const darkToggle = document.getElementById("darkToggle");
+
+if (loginCard && darkToggle) {
+    if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark-mode");
+        darkToggle.textContent = "☀️";
+    }
+
+    loginCard.addEventListener("mouseover", () => {
+        loginCard.style.transform = "translate(-50%, -50%) scale(1.02)";
+    });
+
+    loginCard.addEventListener("mouseout", () => {
+        loginCard.style.transform = "translate(-50%, -50%) scale(1)";
+    });
+
+    darkToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        const isDark = document.body.classList.contains("dark-mode");
+        darkToggle.textContent = isDark ? "☀️" : "🌙";
+        localStorage.setItem("darkMode", isDark);
+    });
+}
+
+const mainDarkToggle = document.getElementById("mainDarkToggle");
+if (mainDarkToggle) {
+    if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark-mode");
+        mainDarkToggle.textContent = "☀️";
+    }
+
+    mainDarkToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        const isDark = document.body.classList.contains("dark-mode");
+        mainDarkToggle.textContent = isDark ? "☀️" : "🌙";
+        localStorage.setItem("darkMode", isDark);
+    });
+}
+
+const selectBox = document.querySelector('.select-selected');
+const selectItems = document.querySelector('.select-items');
+const hiddenInput = document.getElementById('filter_status');
+const displayText = document.getElementById('filter_status_display');
+
+if (selectBox && selectItems) {
+    selectBox.addEventListener('click', function(e) {
+        e.stopPropagation();
+        selectItems.classList.toggle('show');
+    });
+
+    selectItems.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    selectItems.querySelectorAll('li').forEach(item => {
+        item.addEventListener('click', function() {
+            hiddenInput.value = this.getAttribute('data-value');
+            displayText.textContent = this.textContent;
+            selectItems.classList.remove('show');
+        });
+    });
+
+    document.addEventListener('click', function() {
+        selectItems.classList.remove('show');
+    });
+}

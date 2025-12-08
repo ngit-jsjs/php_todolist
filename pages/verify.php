@@ -52,7 +52,7 @@ if (isset($_GET['token'])) {
     <a href="dangnhap.php" class="login-btn"><img class="submit-icon" src="../assets/icon/heart (1).png" > Đăng nhập ngay <img class="submit-icon" src="../assets/icon/heart (1).png" ></a>
 </div>
 
-<script src="../script.js"></script>
+<script src="../assets/js/script.js"></script>
 
 </body>
 </html>

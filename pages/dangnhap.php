@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once '../includes/config.php';
 
 $error = '';
 
@@ -36,13 +36,13 @@ if ($_POST) {
 <head>
     <meta charset="UTF-8">
     <title>Đăng nhập</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body class="login-page">
 
-<img src="./icon/background.jpg" class="login-bg-left">
-<img src="./icon/background2.jpg" class="login-bg-right">
+<img src="../assets/icon/background.jpg" class="login-bg-left">
+<img src="../assets/icon/background2.jpg" class="login-bg-right">
 
 <div class="login-wrapper" id="loginCard">
     <button class="dark-toggle" id="darkToggle">🌙</button>
@@ -62,27 +62,27 @@ if ($_POST) {
         <div class="login-input-box" style="position:relative;">
             <input type="password" name="password" id="password" required placeholder=" " autocomplete="new-password">
             <label>Mật khẩu</label>
-            <span onclick="togglePassword()" id="toggleIcon"><img src="./icon/eye (1).png" class="eye-icon"></span>
+            <span onclick="togglePassword()" id="toggleIcon"><img src="../assets/icon/eye (1).png" class="eye-icon"></span>
         </div>
 
         
         <button type="submit" class="login-btn">
-            <img class="submit-icon" src="./icon/heart (1).png" > 
+            <img class="submit-icon" src="../assets/icon/heart (1).png" > 
             Đăng nhập 
-            <img class="submit-icon" src="./icon/heart (1).png" >
+            <img class="submit-icon" src="../assets/icon/heart (1).png" >
         </button>
 
 
         <a href="dangki.php" class="login-btn register">
-            <img class="submit-icon" src="./icon/right-arrow.png" > 
+            <img class="submit-icon" src="../assets/icon/right-arrow.png" > 
             Đăng kí 
-            <img class="submit-icon" src="./icon/right-arrow.png" >
+            <img class="submit-icon" src="../assets/icon/right-arrow.png" >
         </a>
         
     </form>
 </div>
 
-<script src="script.js"></script>
+<script src="../assets/js/script.js"></script>
 
 </body>
 </html>

@@ -994,9 +994,9 @@ input[type="range"]::-moz-range-thumb {
 
 @font-face {
   font-family: "Huglove";
-  src: url("./font/transfonter.org-20251201-043909/Huglove.woff2")
+  src: url("..//font/transfonter.org-20251201-043909/Huglove.woff2")
       format("woff2"),
-    url("./font/transfonter.org-20251201-043909/Huglove.woff") format("woff");
+    url("..//font/transfonter.org-20251201-043909/Huglove.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;

@@ -111,7 +111,7 @@ function search() {
 <div class="menu-bar">
     <span class="menu-item" style="cursor: pointer; align-items: center; display: flex; gap: 5px;"> <img class="icon-user" src="../assets/animation/Box3.png" alt=""> <?= htmlspecialchars($username) ?></span>
     <a href="add.php" class="menu-item">Thêm công việc</a>
-    <a href="logout.php" class="menu-item">Đăng xuất</a>
+    <a href="../actions/logout.php" class="menu-item">Đăng xuất</a>
     <a href="lab.php" class="menu-item">Lab thực hành</a>
 </div>
 </div>
@@ -125,7 +125,7 @@ function search() {
             <img class="calender-icon" src="../assets/icon/calender.png"> <?= $day ?>
         </h2>
 
-        <a href="delete_day.php?day=<?= urlencode($day) ?>" class="del-day">Xóa ngày</a>
+        <a href="../actions/delete_day.php?day=<?= urlencode($day) ?>" class="del-day">Xóa ngày</a>
 
         <div class="task-container">
         <?php foreach ($items as $t): ?>
@@ -214,7 +214,7 @@ function search() {
 
                 </p>
 
-                <form action="toggle.php" method="POST" style="margin: 5px 0; display: flex; gap: 8px; align-items: center;">
+                <form action="../actions/toggle.php" method="POST" style="margin: 5px 0; display: flex; gap: 8px; align-items: center;">
                     <input type="hidden" name="id" value="<?= $t['id'] ?>">
                     <input type="range" name="progress" value="<?= $t['progress'] ?>" min="0" max="100" 
                            oninput="document.getElementById('progress-text-<?= $t['id'] ?>').textContent = this.value + '%'" style="flex: 1;">
@@ -229,7 +229,7 @@ function search() {
 
                 
                 <a href="edit.php?id=<?= $t['id'] ?>" class="btn small">Sửa</a>
-                <a href="delete.php?id=<?= $t['id'] ?>" class="btn small red">Xóa</a>
+                <a href="../actions/delete.php?id=<?= $t['id'] ?>" class="btn small red">Xóa</a>
 
             </div>
         <?php endforeach ?>
@@ -255,7 +255,7 @@ function search() {
     <?php endif ?>
 </div>
 
-<script src="../script.js"></script>
+<script src="/assets/js/script.js"></script>
 
 </body>
 </html>

@@ -145,7 +145,7 @@ foreach ($tasks as $t) {
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Kết quả tìm kiếm - Todo Cute Premium</title>
+<title>Kết quả tìm kiếm</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/style.css">
 </head>
@@ -189,7 +189,7 @@ foreach ($tasks as $t) {
     <a href="index.php" class="menu-item">← Quay lại</a>
     <span class="menu-item" style="cursor: pointer; align-items: center; display: flex; gap: 5px;"> <img class="icon-user" src="../assets/animation/Box3.png" alt=""> <?= htmlspecialchars($username) ?></span>
     <a href="add.php" class="menu-item">Thêm công việc</a>
-    <a href="logout.php" class="menu-item">Đăng xuất</a>
+    <a href="../actions/logout.php" class="menu-item">Đăng xuất</a>
     <a href="lab.php" class="menu-item">Lab thực hành</a>
 </div>
 </div>
@@ -220,7 +220,7 @@ foreach ($tasks as $t) {
             <img class="calender-icon" src="../assets/icon/calender.png"> <?= $day ?>
         </h2>
             
-            <a href="delete_day.php?day=<?= urlencode($day) ?>" class="del-day">Xóa ngày</a>
+            <a href="../actions/delete_day.php?day=<?= urlencode($day) ?>" class="del-day">Xóa ngày</a>
 
             <div class="task-container">
                 <?php foreach ($items as $t): ?>
@@ -289,7 +289,7 @@ foreach ($tasks as $t) {
                     <img style="width: 20px;height: 20px;" class="small-icon" src="../assets/icon/pin.png" alt=""> 
                      Trạng thái: <b><?= $statusLabel ?></b></p>
                         <a href="edit.php?id=<?= $t['id'] ?>" class="btn small">Sửa</a>
-                        <a href="delete.php?id=<?= $t['id'] ?>&from=search&name=<?= urlencode($name) ?>&day=<?= urlencode($day) ?>&month=<?= urlencode($month) ?>&year=<?= urlencode($year) ?>&time=<?= urlencode($time) ?>&status=<?= urlencode($status) ?>&page=<?= $page ?>" class="btn small red">Xóa</a>
+                        <a href="../actions/delete.php?id=<?= $t['id'] ?>&from=search&name=<?= urlencode($name) ?>&day=<?= urlencode($day) ?>&month=<?= urlencode($month) ?>&year=<?= urlencode($year) ?>&time=<?= urlencode($time) ?>&status=<?= urlencode($status) ?>&page=<?= $page ?>" class="btn small red">Xóa</a>
                     </div>
                 <?php endforeach ?>
             </div>
