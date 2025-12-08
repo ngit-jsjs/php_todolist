@@ -60,7 +60,7 @@ if ($_POST) {
 
 <div class="add-container">
     <button class="dark-toggle small" id="darkToggle">🌙</button>
-    <h1>✏️ Sửa Công Việc</h1>
+    <h1> Sửa Công Việc</h1>
 
     <?php if ($error): ?>
         <div class="error-box">
@@ -81,9 +81,9 @@ if ($_POST) {
             value="<?= date('Y-m-d\TH:i', strtotime($task['start_time'])) ?>">
 
         <label>Số ngày làm: <small>(tự động tính hạn chót)</small></label>
-        <input type="number" id="daysInput" min="1" placeholder="VD: 7 ngày">
+        <input type="number" id="daysInput" min="0" placeholder="VD: 7 ngày (0 = trong ngày)">
 
-        <label>Hạn chót: <small>(để trống = vô thời hạn)</small></label>
+        <label>Hạn chót: <small>(để trống = vô thời hạn, phải sau thời gian bắt đầu)</small></label>
         <input type="datetime-local" name="end" id="endInput"
             value="<?= $task['end_time'] ? date('Y-m-d\TH:i', strtotime($task['end_time'])) : '' ?>">
 
@@ -116,10 +116,15 @@ const endInput = document.getElementById("endInput");
 
 daysInput.addEventListener("input", () => {
     const days = parseInt(daysInput.value);
-    if (!days || days < 1) return;
+    if (isNaN(days) || days < 0) return;
     
     const start = startInput.value ? new Date(startInput.value) : new Date();
-    start.setDate(start.getDate() + days);
+    
+    if (days === 0) {
+        start.setHours(23, 59, 0, 0);
+    } else {
+        start.setDate(start.getDate() + days);
+    }
     
     const year = start.getFullYear();
     const month = String(start.getMonth() + 1).padStart(2, '0');
@@ -132,9 +137,12 @@ daysInput.addEventListener("input", () => {
 
 startInput.addEventListener("change", () => {
     if (daysInput.value) daysInput.dispatchEvent(new Event('input'));
+    validateEndTime();
 });
 
 endInput.addEventListener("change", () => {
+    validateEndTime();
+    
     if (!startInput.value || !endInput.value) return;
     
     const start = new Date(startInput.value);
@@ -142,10 +150,24 @@ endInput.addEventListener("change", () => {
     const diffTime = end - start;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays > 0) {
+    if (diffDays >= 0) {
         daysInput.value = diffDays;
     }
 });
+
+function validateEndTime() {
+    if (!startInput.value || !endInput.value) return;
+    
+    const start = new Date(startInput.value);
+    const end = new Date(endInput.value);
+    
+    if (end <= start) {
+        endInput.setCustomValidity('Thời gian kết thúc phải sau thời gian bắt đầu!');
+        endInput.reportValidity();
+    } else {
+        endInput.setCustomValidity('');
+    }
+}
 </script>
 
 </body>

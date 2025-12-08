@@ -46,28 +46,20 @@ if ($_POST) {
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Register Cute WOW ✨</title>
+    <title>Đăng kí</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="login-page">
 
-<div class="login-heart">💗</div>
-<div class="login-heart">💖</div>
-<div class="login-heart">💕</div>
-<div class="login-heart">💗</div>
-<div class="login-heart">💖</div>
-<div class="login-heart">💕</div>
-<div class="login-heart">💗</div>
-<div class="login-heart">💖</div>
-<div class="login-heart">💖</div>
-<div class="login-heart">💖</div>
-<div class="login-heart">💖</div>
+<img src="./icon/background.jpg" class="login-bg-left">
+<img src="./icon/background2.jpg" class="login-bg-right">
+
 
 <div class="login-wrapper" id="loginCard">
     <button class="dark-toggle" id="darkToggle">🌙</button>
-    <h2>🌸 Create Account 🌸</h2>
-    <p class="sub">Join us on this cute journey 💖</p>
+    <h2> Tạo tài khoản </h2>
+    <p class="sub">Tham gia cùng chúng tôi trên hành trình này </p>
 
     <?php if ($error): ?>
         <div class="error-msg">❌ <?= $error ?></div>
@@ -79,7 +71,7 @@ if ($_POST) {
     <form method="POST" >
         <div class="login-input-box">
             <input type="text" name="username" required placeholder=" " autocomplete="username" value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
-            <label>Username</label>
+            <label>Tên người dùng</label>
         </div>
 
         <div class="login-input-box">
@@ -89,53 +81,17 @@ if ($_POST) {
 
         <div class="login-input-box" style="position:relative;">
             <input type="password" name="password" id="password" required placeholder=" " autocomplete="new-password">
-            <label>Password</label>
-            <span onclick="togglePassword()" style="position:absolute;right:15px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;" id="toggleIcon">👁️</span>
+            <label>Mật khẩu</label>
+            <span onclick="togglePassword()" id="toggleIcon"><img src="./icon/eye (1).png" class="eye-icon"></span>
         </div>
 
-        <button type="submit" class="login-btn">✨ Register ✨</button>
-        <a href="dangnhap.php" class="login-btn register">🌟 Back to Login 🌟</a>
+        <button type="submit" class="login-btn"><img class="submit-icon" src="./icon/heart (1).png" > Đăng kí <img class="submit-icon" src="./icon/heart (1).png" ></button>
+        <a href="dangnhap.php" class="login-btn register"><img class="submit-icon" src="./icon/left-arrow.png" > Đăng nhập <img class="submit-icon" src="./icon/left-arrow.png" ></a>
         
     </form>
 </div>
 
-<script>
-    const card = document.getElementById("loginCard");
-    const darkToggle = document.getElementById("darkToggle");
-    const body = document.body;
-
-    card.addEventListener("mouseover", () => {
-        card.style.transform = "translate(-50%, -50%) scale(1.02)";
-    });
-
-    card.addEventListener("mouseout", () => {
-        card.style.transform = "translate(-50%, -50%) scale(1)";
-    });
-
-    if (localStorage.getItem("darkMode") === "true") {
-        body.classList.add("dark-mode");
-        darkToggle.textContent = "☀️";
-    }
-
-    darkToggle.addEventListener("click", () => {
-        body.classList.toggle("dark-mode");
-        const isDark = body.classList.contains("dark-mode");
-        darkToggle.textContent = isDark ? "☀️" : "🌙";
-        localStorage.setItem("darkMode", isDark);
-    });
-
-    function togglePassword() {
-        const pwd = document.getElementById("password");
-        const icon = document.getElementById("toggleIcon");
-        if (pwd.type === "password") {
-            pwd.type = "text";
-            icon.textContent = "🙈";
-        } else {
-            pwd.type = "password";
-            icon.textContent = "👁️";
-        }
-    }
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>

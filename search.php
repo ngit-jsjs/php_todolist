@@ -153,34 +153,22 @@ foreach ($tasks as $t) {
 
 <div class="header-wrapper">
 <div class="top">
-    <h1>🔍 Kết quả tìm kiếm</h1>
+    
+    <h1><a style="display: flex; align-items: center; gap:5px; padding:5px; text-decoration: none;" href="./index.php"><img style="width: auto; height: 70px;" class="icon-user" src="./animation/RetroCat.png" alt=""> <h1>Ticky-Tock</h1></a></h1>
     <button class="main-dark-toggle" id="mainDarkToggle">🌙</button>
 
    <div class="filter-bar">
-    <input type="text" id="filter_name" placeholder="🔍 Tên công việc..." value="<?= htmlspecialchars($name) ?>">
+    <input type="text" id="filter_name" placeholder="🔍 Tên công việc...">
 
-    <input type="date" id="filter_day" value="<?= htmlspecialchars($day) ?>">
-    <input type="number" id="filter_month" min="1" max="12" placeholder="Tháng" value="<?= htmlspecialchars($month) ?>">
-    <input type="number" id="filter_year" min="2000" max="2100" placeholder="Năm" value="<?= htmlspecialchars($year) ?>">
+    <input type="date" id="filter_day">
+    <input type="number" id="filter_month" min="1" max="12" placeholder="Tháng">
+    <input type="number" id="filter_year" min="2000" max="2100" placeholder="Năm">
 
-    <input type="time" id="filter_time" value="<?= htmlspecialchars($time) ?>">
+    <input type="time" id="filter_time">
 
     <div class="custom-select">
-        <div class="select-selected" id="filter_status_display">
-            <?php 
-            $statusLabels = [
-                '' => '-- Trạng thái --',
-                'overdue' => '📛 Quá hạn',
-                'soon' => '⏳ Sắp đến hạn',
-                'in_progress' => '🔄 Đang tiến hành',
-                'no_deadline' => '♾️ Vô thời hạn',
-                'new' => '🆕 Mới thêm',
-                'done' => '✅ Hoàn thành'
-            ];
-            echo $statusLabels[$status] ?? '-- Trạng thái --';
-            ?>
-        </div>
-        <input type="hidden" id="filter_status" value="<?= htmlspecialchars($status) ?>">
+        <div class="select-selected" id="filter_status_display">-- Trạng thái --</div>
+        <input type="hidden" id="filter_status" value="">
         <ul class="select-items">
             <li data-value="">-- Trạng thái --</li>
             <li data-value="overdue">📛 Quá hạn</li>
@@ -192,18 +180,27 @@ foreach ($tasks as $t) {
         </ul>
     </div>
 
-    <button class="btn" onclick="applyFilter()">Lọc</button>
+    <button styl class="btn" onclick="applyFilter()">Lọc</button>
 </div>
 
 </div>
 
 <div class="menu-bar">
     <a href="index.php" class="menu-item">← Quay lại</a>
-    <span class="menu-item" style="cursor: default;">👋 Xin chào, <?= htmlspecialchars($username) ?></span>
+    <span class="menu-item" style="cursor: pointer; align-items: center; display: flex; gap: 5px;"> <img class="icon-user" src="./animation/Box3.png" alt=""> <?= htmlspecialchars($username) ?></span>
     <a href="add.php" class="menu-item">+ Thêm công việc</a>
     <a href="logout.php" class="menu-item">Đăng xuất</a>
     <a href="lab.php" class="menu-item">Lab thực hành</a>
 </div>
+</div>
+
+
+
+
+
+
+<div class="top">
+    <h1>🔍 Kết quả tìm kiếm</h1>
 </div>
 
 <div class="day-container">
@@ -219,8 +216,10 @@ foreach ($tasks as $t) {
     <?php foreach ($group as $day => $items): ?>
         <div class="day-box">
             
-            <h2>📅 <?= $day ?></h2>
-
+         <h2 style="display: flex;gap: 8px; align-items: center;">
+            <img class="calender-icon" src="./icon/calender.png"> <?= $day ?>
+        </h2>
+            
             <a href="delete_day.php?day=<?= urlencode($day) ?>" class="del-day">Xóa ngày</a>
 
             <div class="task-container">
@@ -255,17 +254,40 @@ foreach ($tasks as $t) {
                         $statusLabel = "🆕 Mới thêm - " . $statusLabel;
                     }
                     ?>
-                        <h3>📝 <?= htmlspecialchars($t['title']) ?></h3>
+                        <h3 style="display: flex;gap: 5px; align-items: center;"><img style="width: 30px;height: 30px;" class="small-icon" src="./icon/task.png" alt="">
+                          <?= htmlspecialchars($t['title']) ?>
+                        </h3>
+
                         <p><?= nl2br(htmlspecialchars($t['content'])) ?></p>
-                        <p>⏰ Bắt đầu: <b><?= date('d/m/Y H:i', strtotime($t['start_time'])) ?></b></p>
-                        <p>🚀 Hạn chót: <b><?= $t['end_time'] ? date('d/m/Y H:i', strtotime($t['end_time'])) : '♾️ Vô thời hạn' ?></b></p>
+
+                        <p style="display: flex;gap: 5px; align-items: center;">
+                            <img class="small-icon" src="./icon/clock.png" alt=""> 
+                            Bắt đầu: 
+                            <b><?= date('d/m/Y H:i', strtotime($t['start_time'])) ?></b>
+                        </p>
+
+                       <p style="display: flex;gap: 5px; align-items: center;">
+                        <img style="width: 22px;height: 22px;" class="small-icon" src="./icon/rocket.png" alt="">
+                         Hạn chót: 
+                        <b><?= $t['end_time'] ? date('d/m/Y H:i', strtotime($t['end_time'])) : '♾️ Vô thời hạn' ?></b>
+                    </p>
                         <?php if ($t['end_time'] && $t['progress'] < 100): 
-                            $daysLeft = ceil((strtotime($t['end_time']) - time()) / 86400);
+                            $timeDiff = strtotime($t['end_time']) - time();
+                            $absTime = abs($timeDiff);
+                            $days = floor($absTime / 86400);
+                            $hours = floor(($absTime % 86400) / 3600);
+                            $timeText = $days > 0 ? $days . ' ngày ' . $hours . ' giờ' : $hours . ' giờ';
                         ?>
-                        <p>📅 Còn lại: <b style="color: <?= $daysLeft < 0 ? '#d63031' : ($daysLeft <= 3 ? '#fdcb6e' : '#00b894') ?>"><?= $daysLeft < 0 ? 'Trễ ' . abs($daysLeft) : $daysLeft ?> ngày</b></p>
+                        <p style="display: flex;gap: 5px; align-items: center;">
+
+                        <img class="small-icon" src="./icon/calende 2.png"> 
+                         Còn lại: 
+                         <b style="color: <?= $timeDiff < 0 ? '#d63031' : ($absTime <= 259200 ? '#fdcb6e' : '#00b894') ?>"><?= $timeDiff < 0 ? 'Trễ ' . $timeText : $timeText ?></b></p>
                         <?php endif ?>
                         <p>🎯 Tiến độ: <b><?= $t['progress'] ?>%</b></p>
-                        <p>📌 Trạng thái: <b><?= $statusLabel ?></b></p>
+                        <p style="display: flex;gap: 5px; align-items: center;">
+                    <img style="width: 20px;height: 20px;" class="small-icon" src="./icon/pin.png" alt=""> 
+                     Trạng thái: <b><?= $statusLabel ?></b></p>
                         <a href="edit.php?id=<?= $t['id'] ?>" class="btn small">Sửa</a>
                         <a href="delete.php?id=<?= $t['id'] ?>&from=search&name=<?= urlencode($name) ?>&day=<?= urlencode($day) ?>&month=<?= urlencode($month) ?>&year=<?= urlencode($year) ?>&time=<?= urlencode($time) ?>&status=<?= urlencode($status) ?>&page=<?= $page ?>" class="btn small red">Xóa</a>
                     </div>
@@ -293,23 +315,6 @@ foreach ($tasks as $t) {
     <?php endif ?>
 </div>
 <?php endif ?>
-
-<script>
-const mainDarkToggle = document.getElementById("mainDarkToggle");
-const body = document.body;
-
-if (localStorage.getItem("darkMode") === "true") {
-    body.classList.add("dark-mode");
-    mainDarkToggle.textContent = "☀️";
-}
-
-mainDarkToggle.addEventListener("click", () => {
-    body.classList.toggle("dark-mode");
-    const isDark = body.classList.contains("dark-mode");
-    mainDarkToggle.textContent = isDark ? "☀️" : "🌙";
-    localStorage.setItem("darkMode", isDark);
-});
-</script>
 
 <script src="script.js"></script>
 

@@ -20,6 +20,59 @@ function toggleDarkMode() {
     document.body.classList.toggle("dark-mode");
 }
 
+function togglePassword() {
+    const pwd = document.getElementById("password");
+    const icon = document.getElementById("toggleIcon");
+
+    if (pwd.type === "password") {
+        pwd.type = "text";
+        icon.innerHTML = `<img src="./icon/closeye.png" class="eye-icon">`;
+    } else {
+        pwd.type = "password";
+        icon.innerHTML = `<img src="./icon/eye (1).png" class="eye-icon">`;
+    }
+}
+
+const loginCard = document.getElementById("loginCard");
+const darkToggle = document.getElementById("darkToggle");
+
+if (loginCard && darkToggle) {
+    if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark-mode");
+        darkToggle.textContent = "☀️";
+    }
+
+    loginCard.addEventListener("mouseover", () => {
+        loginCard.style.transform = "translate(-50%, -50%) scale(1.02)";
+    });
+
+    loginCard.addEventListener("mouseout", () => {
+        loginCard.style.transform = "translate(-50%, -50%) scale(1)";
+    });
+
+    darkToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        const isDark = document.body.classList.contains("dark-mode");
+        darkToggle.textContent = isDark ? "☀️" : "🌙";
+        localStorage.setItem("darkMode", isDark);
+    });
+}
+
+const mainDarkToggle = document.getElementById("mainDarkToggle");
+if (mainDarkToggle) {
+    if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark-mode");
+        mainDarkToggle.textContent = "☀️";
+    }
+
+    mainDarkToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        const isDark = document.body.classList.contains("dark-mode");
+        mainDarkToggle.textContent = isDark ? "☀️" : "🌙";
+        localStorage.setItem("darkMode", isDark);
+    });
+}
+
 const selectBox = document.querySelector('.select-selected');
 const selectItems = document.querySelector('.select-items');
 const hiddenInput = document.getElementById('filter_status');

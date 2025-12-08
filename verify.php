@@ -30,28 +30,29 @@ if (isset($_GET['token'])) {
     <meta charset="UTF-8">
     <title>Xác thực Email</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="login-page">
+<img src="./icon/background.jpg" class="login-bg-left">
+<img src="./icon/background2.jpg" class="login-bg-right">
 
-<div class="login-heart">💗</div>
-<div class="login-heart">💖</div>
-<div class="login-heart">💕</div>
 
 <div class="login-wrapper">
-    <h2><?= $success ? '✅ Thành công!' : '❌ Lỗi!' ?></h2>
+   <h2>
+    <?= $success 
+        ? '<i class="fa fa-check" style="color:#28a745;"></i> Thành công!' 
+        : '<i class="fa fa-times" style="color:#dc3545;"></i> Lỗi!' 
+    ?>
+</h2>
+
     <p style="text-align:center;margin:20px 0;color:<?= $success ? '#27ae60' : '#d63031' ?>;">
         <?= $message ?>
     </p>
-    <a href="dangnhap.php" class="login-btn">🌟 Đăng nhập ngay 🌟</a>
+    
+    <a href="dangnhap.php" class="login-btn"><img class="submit-icon" src="./icon/heart (1).png" > Đăng nhập ngay <img class="submit-icon" src="./icon/heart (1).png" ></a>
 </div>
 
-<script>
-if (localStorage.getItem("darkMode") === "true") {
-    document.body.classList.add("dark-mode");
-}
-
-
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>

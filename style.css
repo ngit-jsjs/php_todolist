@@ -44,7 +44,9 @@ body.dark-mode {
   z-index: 100;
   overflow: visible;
 }
-
+.header-text {
+  font-family: "Huglove", sans-serif;
+}
 /* HEADER */
 .top {
   background: #ffffffcc;
@@ -66,9 +68,11 @@ body.dark-mode {
 
 .top h1 {
   flex: 1;
-  font-size: 28px;
+  font-size: 30px;
   color: #ff66c4;
-  font-weight: 600;
+  font-weight: 60px;
+  padding: 0px;
+  margin: 0px;
 }
 
 .dark-mode .top h1 {
@@ -153,7 +157,7 @@ body.dark-mode {
 .btn.small {
   padding: 6px 10px;
   font-size: 13px;
-  border-radius: 10px;
+  border-radius: 15px;
 }
 
 .btn.red {
@@ -500,6 +504,7 @@ body.dark-mode {
   outline: none;
   background: #fff6fd;
   transition: 0.25s;
+  font-family: monospace;
 }
 
 .dark-mode .add-container input,
@@ -616,18 +621,6 @@ input[type="range"]::-moz-range-thumb {
   animation: loginBgMove 6s ease infinite;
 }
 
-@keyframes loginBgMove {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 .login-heart {
   position: absolute;
   font-size: 50px;
@@ -636,67 +629,11 @@ input[type="range"]::-moz-range-thumb {
   pointer-events: none;
 }
 
-.login-heart:nth-child(1) {
-  top: 15%;
-  left: 10%;
-  animation-delay: 0s;
-}
-.login-heart:nth-child(2) {
-  top: 70%;
-  right: 5%;
-  animation-delay: 1s;
-}
-.login-heart:nth-child(3) {
-  top: 25%;
-  right: 15%;
-  animation-delay: 2s;
-  font-size: 40px;
-}
-.login-heart:nth-child(4) {
-  bottom: 20%;
-  left: 8%;
-  animation-delay: 3s;
-}
-.login-heart:nth-child(5) {
-  top: 45%;
-  left: 5%;
-  animation-delay: 4s;
-  font-size: 35px;
-}
-.login-heart:nth-child(6) {
-  top: 80%;
-  right: 20%;
-  animation-delay: 5s;
-}
-.login-heart:nth-child(7) {
-  top: 35%;
-  right: 25%;
-  animation-delay: 1.5s;
-  font-size: 45px;
-}
-.login-heart:nth-child(8) {
-  bottom: 15%;
-  right: 10%;
-  animation-delay: 2.5s;
-}
-
-@keyframes loginFloat {
-  0% {
-    transform: translateY(0) rotate(0);
-  }
-  50% {
-    transform: translateY(-40px) rotate(20deg);
-  }
-  100% {
-    transform: translateY(0) rotate(0);
-  }
-}
-
 .login-wrapper {
   width: 380px;
   padding: 40px 30px;
   background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(80px);
   border-radius: 40px;
   box-shadow: 0 15px 40px rgba(255, 130, 180, 0.3);
   position: absolute;
@@ -720,7 +657,7 @@ input[type="range"]::-moz-range-thumb {
 
 .login-wrapper h2 {
   text-align: center;
-  color: #ff5ebc;
+  color: #c50073;
   font-size: 28px;
   margin-bottom: 8px;
 }
@@ -728,7 +665,7 @@ input[type="range"]::-moz-range-thumb {
 .login-wrapper .sub {
   text-align: center;
   margin-bottom: 25px;
-  color: #ff8cd4;
+  color: #f465be;
 }
 
 .login-input-box {
@@ -782,11 +719,11 @@ input[type="range"]::-moz-range-thumb {
 
 .login-btn {
   width: 100%;
-  padding: 13px;
+  padding: 5px;
   border: none;
-  border-radius: 20px;
+  border-radius: 10px;
   cursor: pointer;
-  background: linear-gradient(135deg, #ff8cd4, #ff66c4);
+  background:linear-gradient(135deg, #ff8cd4, #e41795);
   color: white;
   font-size: 17px;
   font-weight: 600;
@@ -795,12 +732,16 @@ input[type="range"]::-moz-range-thumb {
   text-decoration: none;
   display: block;
   text-align: center;
+  display: flex;
+  align-items: center; /* căn giữa dọc */
+  justify-content: center; /* căn giữa toàn bộ */
+  gap: 8px; /* khoảng cách icon - text */
 }
 
 .login-btn:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 30px rgba(255, 95, 177, 0.45);
-  background: linear-gradient(135deg, #ff66c4, #ff4db8);
+  background: linear-gradient(135deg, #ff66c4, #dc1b8f);
 }
 
 .login-btn:active {
@@ -811,15 +752,15 @@ input[type="range"]::-moz-range-thumb {
 
 .login-btn.register {
   margin-top: 15px;
-  background: linear-gradient(135deg, #c8b6ff, #b8a6ff);
+  background: linear-gradient(135deg, #c8b6ff, #5239d2);
 }
 
 .login-btn.register:hover {
-  background: linear-gradient(135deg, #b8a6ff, #a594ff) !important;
+  background: linear-gradient(135deg, #b8a6ff, #664de4) !important;
 }
 
 .login-btn.register:active {
-  background: linear-gradient(135deg, #9d7bff, #8a5fff) !important;
+  background: linear-gradient(135deg, #9d7bff, #5227c9) !important;
   box-shadow: 0 5px 15px rgba(138, 95, 255, 0.6);
 }
 
@@ -870,6 +811,13 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.dark-toggle img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 0 6px #6c6d45) drop-shadow(0 0 6px #feffbd);
 }
 .dark-toggle.small {
   width: 40px !important;
@@ -952,7 +900,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .dark-mode .login-wrapper h2 {
-  color: #ff8cd4;
+  color: #c50073;
 }
 
 .dark-mode .login-wrapper .sub {
@@ -986,4 +934,120 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 8px;
   margin-bottom: 15px;
   text-align: center;
+}
+
+
+
+.eye-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  cursor: pointer;
+  user-select: none;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  filter: drop-shadow(0 0 6px #fa5cda) drop-shadow(0 0 6px #fc6bdf);
+}
+.star-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  cursor: pointer;
+  user-select: none;
+  display: block; /* tránh icon bị thò ra baseline */
+}
+.calender-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  user-select: none;
+  display: block; /* tránh icon bị thò ra baseline */
+}
+.small-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  user-select: none;
+  display: block; /* tránh icon bị thò ra baseline */
+}
+.icon-user {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  user-select: none;
+  cursor: pointer;
+}
+.submit-icon {
+  width: 20px;
+  height: 30px;
+  object-fit: contain;
+  cursor: pointer;
+  user-select: none;
+  display: block; /* tránh icon bị thò ra baseline */
+}
+
+
+
+
+@font-face {
+  font-family: "Huglove";
+  src: url("./font/transfonter.org-20251201-043909/Huglove.woff2")
+      format("woff2"),
+    url("./font/transfonter.org-20251201-043909/Huglove.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+
+
+
+.login-bg-image {
+  position: fixed;
+  bottom: -50px;
+  right: -50px;
+  width: 500px;
+  height: 500px;
+  object-fit: contain;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+  animation: loginFloat 8s infinite ease-in-out;
+}
+
+.dark-mode .login-bg-image {
+  opacity: 0.2;
+}
+
+.login-bg-left {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100vh;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-bg-right {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100vh;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark-mode .login-bg-left,
+.dark-mode .login-bg-right {
+  opacity: 0.15;
 }

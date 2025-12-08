@@ -28,14 +28,14 @@ function sendVerificationEmail($email, $token) {
         $mail->addAddress($email);
         
         $mail->isHTML(true);
-        $mail->Subject = '🌸 Xác thực tài khoản Todo List';
+        $mail->Subject = 'Xác thực tài khoản Todo List';
         
         $verifyLink = $baseUrl . "/verify.php?token=" . $token;
         $mail->Body = "
             <h2>🌸 Chào mừng bạn đến với Todo List! 🌸</h2>
             <p>Vui lòng click vào link bên dưới để xác thực email:</p>
             <a href='$verifyLink' style='background:#ff71c5;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;display:inline-block;'>
-                ✨ Xác thực ngay ✨
+                 Xác thực ngay 
             </a>
             <p>Hoặc copy link này: <br>$verifyLink</p>
         ";
