@@ -1,14 +1,6 @@
 <?php
-session_start();
 require "../includes/config.php";
-
-// Kiểm tra đăng nhập
-if (!isset($_SESSION['user_id'])) {
-    header('Location: dangnhap.php');
-    exit;
-}
-
-$user_id = $_SESSION['user_id'];
+include '../includes/auth_check.php';
 $id = $_GET["id"];
 
 // Kiểm tra quyền sở hữu task
@@ -36,30 +28,45 @@ if ($_POST) {
     } elseif ($end && strtotime($end) < time()) {
         $error = "Hạn chót không được trước ngày hôm nay!";
     } else {
+        try{
         $stmt = $conn->prepare("UPDATE tasks SET title=?, content=?, start_time=?, end_time=? WHERE id=? AND user_id=?");
         $stmt->execute([$title, $content, $start, $end, $id, $user_id]);
-        header("Location: index.php");
-        exit();
+
+        if ($stmt->rowCount() > 0) {
+            $_SESSION['toast'] = [
+                'type' => 'success',
+                'message' => 'Sửa công việc thành công!'
+            ];
+        } else {
+            // ⚠️ Không có gì thay đổi
+            $_SESSION['toast'] = [
+                'type' => 'error',
+                'message' => ' Không có thay đổi nào được lưu!'
+            ];
+        }
+
+        header("Location: home.php");
+        exit();}
+
+        catch (PDOException $e) {
+        
+        $_SESSION['toast'] = [
+            'type' => 'error',
+            'message' => 'Sửa không thành công. Vui lòng thử lại!'
+        ];
+    }
     }
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>Sửa công việc</title>
+<?php $pageTitle = 'Sửa Công Việc'; 
+include '../includes/header.php';
+?>
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
-
-<link rel="stylesheet" href="../assets/css/style.css">
-
-</head>
-
-<body class="add-page">
+<body>
+<div class="add-page">
 
 <div class="add-container">
-    <button class="dark-toggle small" id="darkToggle">🌙</button>
     <h1> Sửa Công Việc</h1>
 
     <?php if ($error): ?>
@@ -90,71 +97,13 @@ if ($_POST) {
         <button>Lưu thay đổi</button>
     </form>
 
-    <a href="index.php" class="back">← Quay lại danh sách</a>
+    <a href="home.php" class="back">← Quay lại danh sách</a>
 
+</div>
 </div>
 
 <script src="../assets/js/script.js"></script>
-<script>
-const daysInput = document.getElementById("daysInput");
-const startInput = document.getElementById("startInput");
-const endInput = document.getElementById("endInput");
 
-daysInput.addEventListener("input", () => {
-    const days = parseInt(daysInput.value);
-    if (isNaN(days) || days < 0) return;
-    
-    const start = startInput.value ? new Date(startInput.value) : new Date();
-    
-    if (days === 0) {
-        start.setHours(23, 59, 0, 0);
-    } else {
-        start.setDate(start.getDate() + days);
-    }
-    
-    const year = start.getFullYear();
-    const month = String(start.getMonth() + 1).padStart(2, '0');
-    const day = String(start.getDate()).padStart(2, '0');
-    const hours = String(start.getHours()).padStart(2, '0');
-    const minutes = String(start.getMinutes()).padStart(2, '0');
-    
-    endInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
-});
-
-startInput.addEventListener("change", () => {
-    if (daysInput.value) daysInput.dispatchEvent(new Event('input'));
-    validateEndTime();
-});
-
-endInput.addEventListener("change", () => {
-    validateEndTime();
-    
-    if (!startInput.value || !endInput.value) return;
-    
-    const start = new Date(startInput.value);
-    const end = new Date(endInput.value);
-    const diffTime = end - start;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays >= 0) {
-        daysInput.value = diffDays;
-    }
-});
-
-function validateEndTime() {
-    if (!startInput.value || !endInput.value) return;
-    
-    const start = new Date(startInput.value);
-    const end = new Date(endInput.value);
-    
-    if (end <= start) {
-        endInput.setCustomValidity('Thời gian kết thúc phải sau thời gian bắt đầu!');
-        endInput.reportValidity();
-    } else {
-        endInput.setCustomValidity('');
-    }
-}
-</script>
 
 </body>
 </html>

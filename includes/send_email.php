@@ -8,9 +8,8 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
 function sendVerificationEmail($email, $token) {
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'];
-    $baseUrl = $protocol . '://' . $host . dirname($_SERVER['PHP_SELF']);
+   
+    $baseUrl = "https://tickytock.kesug.com";
     
     $mail = new PHPMailer(true);
     
@@ -28,20 +27,26 @@ function sendVerificationEmail($email, $token) {
         $mail->addAddress($email);
         
         $mail->isHTML(true);
+        
         $mail->Subject = 'Xác thực tài khoản Todo List';
         
-        $verifyLink = $baseUrl . "/pages/verify.php?token=" . $token;
+        $verifyLink = $baseUrl . "/verify.php?token=" . urlencode($token);
+        $mail->AltBody = "Xác thực tài khoản tại link: $verifyLink";
        $mail->Body = <<<HTML
-    <h2>
-        <img class="submit-icon" src="/assets/icon/heart (1).png">
-        Chào mừng bạn đến với Todo List Website Ticky-Tock!
-    </h2>
-    <p>Vui lòng click vào link bên dưới để xác thực email:</p>
-    <a href="$verifyLink" style="background:#ff71c5;color:white;padding:10px 20px;text-decoration:none;border-radius:8px;display:inline-block;">
-        Xác thực ngay
-    </a>
-    <p>Hoặc copy link này: <br>$verifyLink</p>
-HTML;
+        <p>Xin chào,</p>
+
+        <p>Bạn vừa đăng ký tài khoản tại <b>Todo List Ticky-Tock</b>.</p>
+
+        <p>Vui lòng xác thực email bằng cách mở link sau:</p>
+
+        <p>
+        <a href="$verifyLink">$verifyLink</a>
+        </p>
+
+        <p>Nếu bạn không đăng ký tài khoản này, hãy bỏ qua email.</p>
+
+        HTML;
+
         
         $mail->send();
         return true;

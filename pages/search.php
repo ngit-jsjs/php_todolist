@@ -1,71 +1,100 @@
-<?php
-session_start();
-require "../includes/config.php";
-
-// Kiểm tra đăng nhập
-if (!isset($_SESSION['user_id'])) {
-    header('Location: dangnhap.php');
-    exit;
-}
-
-$user_id = $_SESSION['user_id'];
-
-// Lấy username
-$stmt = $conn->prepare("SELECT username FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-$username = $stmt->fetchColumn();
-
-$name  = $_GET["name"]  ?? "";
+<?php 
+include '../includes/auth_check.php';
+include '../includes/sort.php'; 
+// 1) NHẬN DỮ LIỆU LỌC TỪ URL (GET)
+// =======================
+// Dùng toán tử ?? "" để:
+// - nếu param không tồn tại -> gán chuỗi rỗng
+// - tránh lỗi "Undefined index"
+$name   = trim($_GET['name']   ?? '');
 $day   = $_GET["day"]   ?? "";
 $month = $_GET["month"] ?? "";
 $year  = $_GET["year"]  ?? "";
-$time  = $_GET["time"]  ?? "";
 $status= $_GET["status"] ?? "";
+$time   = trim($_GET['time']   ?? ""); // <-- thêm dòng này
+
 
 // phân trang
-$limit = 10;
+$limit = 12;
+// Lấy page từ URL, nếu không có thì mặc định trang 1
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+// Đảm bảo page không âm/0
 if ($page < 1) $page = 1;
+// $offset: bỏ qua bao nhiêu dòng để lấy trang hiện tại
+// VD: page=1 -> offset=0
+//     page=2 -> offset=12
 $offset = ($page - 1) * $limit;
 
-// kiểm tra có điều kiện lọc nào không
+// lấy điều kiện lọc là loại nào
 $hasFilter = $name || $day || $month || $year || $time || $status;
 
-if (!$hasFilter) {
+$invalidFilter = false;
+if ($day && $month && $year && !checkdate((int)$month, (int)$day, (int)$year)) {
+    $invalidFilter = true;
+}
+// 2) KIỂM TRA ĐIỀU KIỆN LỌC HỢP LỆ KHÔNG
+
+// chọn tháng nhưng không có năm
+if ($month && !$year) {
+    $invalidFilter = true;
+}
+// chọn ngày nhưng không có năm
+if ($day && !$year) {
+    $invalidFilter = true;
+}
+// 4) NẾU KHÔNG CÓ FILTER HOẶC FILTER KHÔNG HỢP LỆ -> TRẢ VỀ RỖNG
+// Nếu filter không hợp lệ (ví dụ chọn ngày nhưng không có năm) hoặc không có filter,
+// không thực hiện truy vấn để tránh lỗi SQL do giá trị ngày không đầy đủ.
+if (!$hasFilter || $invalidFilter) {
     $tasks = [];
     $total = 0;
 } else {
+    // chuẩn hóa ngày (nếu user chọn day+month+year) sang định dạng YYYY-MM-DD
+    $dayIso = null;
+    if ($day && $month && $year) {
+        $dayIso = sprintf('%04d-%02d-%02d', (int)$year, (int)$month, (int)$day);
+    }
+    //sprintf() = format chuỗi theo khuôn mẫu
     // đếm tổng số
     $sqlCount = "SELECT COUNT(*) FROM tasks WHERE user_id = ?";
-    $params = [$user_id];
-
+    $params = [$user_id];  
+     // 5.1) LỌC THEO TÊN TASK
+    // -----------------------
+    // title LIKE %name%: tìm task có chứa chuỗi name
     // lọc tên
     if ($name) {
         $sqlCount .= " AND title LIKE ?";
         $params[] = "%$name%";
     }
 
-    // lọc ngày
+    // lọc ngày - tìm công việc đang diễn ra trong ngày đó
     if ($day) {
-        $sqlCount .= " AND DATE(start_time) = ?";
-        $params[] = $day;
+        $sqlCount .= " AND (DATE(start_time) <= ? AND (end_time IS NULL OR DATE(end_time) >= ?))";
+        $params[] = $dayIso ?? $day;
+        $params[] = $dayIso ?? $day;
     }
 
-    // lọc tháng / năm
-    if ($month) {
-        $sqlCount .= " AND MONTH(start_time) = ?";
-        $params[] = $month;
-    }
-    if ($year) {
-        $sqlCount .= " AND YEAR(start_time) = ?";
-        $params[] = $year;
+    // lọc tháng - tìm công việc bắt đầu từ tháng đó trở đi
+    if ($year && $month && !$day) {
+        $startMonth = "$year-$month-01 00:00:00";
+        $endMonth   = date("Y-m-t 23:59:59", strtotime($startMonth));
+
+        $sqlCount .= " AND start_time <= ? AND (end_time IS NULL OR end_time >= ?)";
+        $params[] = $endMonth;
+        $params[] = $startMonth;
     }
 
-    // lọc giờ phút
-    if ($time) {
-        $sqlCount .= " AND TIME(start_time) = ?";
-        $params[] = $time;
+    
+    // lọc năm - tìm công việc diễn ra trong năm đó
+    if ($year && !$month && !$day) {
+    $startYear = "$year-01-01 00:00:00";
+    $endYear   = "$year-12-31 23:59:59";
+
+    $sqlCount .= " AND start_time <= ? AND (end_time IS NULL OR end_time >= ?)";
+    $params[] = $endYear;
+    $params[] = $startYear;
     }
+
 
     // lọc trạng thái
     if ($status == "done") {
@@ -95,20 +124,17 @@ if (!$hasFilter) {
         $params[] = "%$name%";
     }
     if ($day) {
-        $sql .= " AND DATE(start_time) = ?";
-        $params[] = $day;
+        $sql .= " AND (DATE(start_time) <= ? AND (end_time IS NULL OR DATE(end_time) >= ?))";
+        $params[] = $dayIso ?? $day;
+        $params[] = $dayIso ?? $day;
     }
-    if ($month) {
-        $sql .= " AND MONTH(start_time) = ?";
+    if ($month && !$day) {
+        $sql .= " AND MONTH(start_time) >= ?";
         $params[] = $month;
     }
-    if ($year) {
-        $sql .= " AND YEAR(start_time) = ?";
+    if ($year && !$day && !$month) {
+        $sql .= " AND YEAR(start_time) >= ?";
         $params[] = $year;
-    }
-    if ($time) {
-        $sql .= " AND TIME(start_time) = ?";
-        $params[] = $time;
     }
     if ($status == "done") {
         $sql .= " AND progress = 100";
@@ -124,7 +150,6 @@ if (!$hasFilter) {
         $sql .= " AND DATE(created_at) = CURDATE()";
     }
 
-    $sql .= " ORDER BY end_time IS NULL, end_time ASC, start_time ASC LIMIT $limit OFFSET $offset";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
@@ -132,191 +157,57 @@ if (!$hasFilter) {
 }
 
 $totalPages = $hasFilter ? ceil($total / $limit) : 0;
-
-// gom nhóm theo ngày
-$group = [];
-foreach ($tasks as $t) {
-    $day = date("d/m/Y", strtotime($t['start_time']));
-    $group[$day][] = $t;
-}
 ?>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>Kết quả tìm kiếm</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/style.css">
-</head>
-<body>
-
-<div class="header-wrapper">
-<div class="top">
-    
-    <h1><a style="display: flex; align-items: center; gap:5px; padding:5px; text-decoration: none;" href="./index.php"><img style="width: auto; height: 70px;" class="icon-user" src="../assets/animation/RetroCat.png" alt=""> <h1>Ticky-Tock</h1></a></h1>
-    <button class="main-dark-toggle" id="mainDarkToggle">🌙</button>
-
-   <div class="filter-bar">
-    <input type="text" id="filter_name" placeholder="🔍 Tên công việc...">
-
-    <input type="date" id="filter_day">
-    <input type="number" id="filter_month" min="1" max="12" placeholder="Tháng">
-    <input type="number" id="filter_year" min="2000" max="2100" placeholder="Năm">
-
-    <input type="time" id="filter_time">
-
-    <div class="custom-select">
-        <div class="select-selected" id="filter_status_display">-- Trạng thái --</div>
-        <input type="hidden" id="filter_status" value="">
-        <ul class="select-items">
-            <li data-value="">-- Trạng thái --</li>
-            <li data-value="overdue">📛 Quá hạn</li>
-            <li data-value="soon">⏳ Sắp đến hạn</li>
-            <li data-value="in_progress">🔄 Đang tiến hành</li>
-            <li data-value="no_deadline">♾️ Vô thời hạn</li>
-            <li data-value="new">🆕 Mới thêm</li>
-            <li data-value="done">✅ Hoàn thành</li>
-        </ul>
-    </div>
-
-    <button styl class="btn" onclick="applyFilter()">Lọc</button>
-</div>
-
-</div>
-
-<div class="menu-bar">
-    <a href="index.php" class="menu-item">← Quay lại</a>
-    <span class="menu-item" style="cursor: pointer; align-items: center; display: flex; gap: 5px;"> <img class="icon-user" src="../assets/animation/Box3.png" alt=""> <?= htmlspecialchars($username) ?></span>
-    <a href="add.php" class="menu-item">Thêm công việc</a>
-    <a href="../actions/logout.php" class="menu-item">Đăng xuất</a>
-    <a href="lab.php" class="menu-item">Lab thực hành</a>
-</div>
-</div>
-
-
-
-
-
+<?php $pageTitle = 'Kết quả tìm kiếm'; 
+include '../includes/header.php';
+?>
 
 <div class="top">
-    <h1>🔍 Kết quả tìm kiếm</h1>
+    <h1>Kết quả tìm kiếm</h1>
 </div>
 
-<div class="day-container">
+<?php 
+$extraParams = "+'&name=" . urlencode($name) . "&day=" . urlencode($day) . "&month=" . urlencode($month) . "&year=" . urlencode($year) . "&status=" . urlencode($status) . "'";
+include '../includes/sort_selector.php'; 
+?>
+
+
 <?php if (!$hasFilter): ?>
     <div style="width: 100%; text-align: center;">
-        <p style="color: #ff66c4; font-size: 18px; margin: 40px 0;">Vui lòng nhập ít nhất một điều kiện lọc!</p>
+        <p style="color: #f742b1ff; font-size: 18px; isolation: isolate; font-weight: bolder;">Vui lòng nhập ít nhất một điều kiện lọc!</p>
+    </div>
+    <?php elseif ($invalidFilter): ?>
+    <div style="width: 100%; text-align: center;">
+        <p style="color: #f742b1ff; font-size: 18px; isolation: isolate; font-weight: bolder;">
+            Điều kiện lọc không hợp lệ. Vui lòng kiểm tra lại ngày, tháng hoặc thời gian!
+        </p>
     </div>
 <?php elseif (empty($tasks)): ?>
     <div style="width: 100%; text-align: center;">
-        <p style="color: #ff66c4; font-size: 18px; margin: 40px 0;">Không tìm thấy kết quả nào!</p>
+        <p style="color: #f742b1ff; font-size: 18px; isolation: isolate; font-weight: bolder;">Không tìm thấy kết quả nào!</p>
     </div>
 <?php else: ?>
-    <?php foreach ($group as $day => $items): ?>
-        <div class="day-box">
-            
-         <h2 style="display: flex;gap: 8px; align-items: center;">
-            <img class="calender-icon" src="../assets/icon/calender.png"> <?= $day ?>
-        </h2>
-            
-            <a href="../actions/delete_day.php?day=<?= urlencode($day) ?>" class="del-day">Xóa ngày</a>
-
-            <div class="task-container">
-                <?php foreach ($items as $t): ?>
-                    <div class="task <?php 
-                        if ($t['progress'] == 100) echo 'done';
-                        elseif ($t['end_time'] && $t['end_time'] < date('Y-m-d H:i:s') && $t['progress'] < 100) echo 'overdue';
-                    ?>">
-                    <?php
-                    // tính trạng thái
-                    $now = date("Y-m-d H:i:s");
-                    $statusLabel = "";
-
-                    $isNew = date("Y-m-d", strtotime($t["created_at"])) == date("Y-m-d");
-                    
-                    if ($t["progress"] == 100) {
-                        $statusLabel = "✅ Hoàn thành";
-                    } else if (!$t["end_time"]) {
-                        $statusLabel = "♾️ Vô thời hạn";
-                    } else if ($t["end_time"] < $now) {
-                        $statusLabel = "📛 Quá hạn";
-                    } else {
-                        $timeDiff = strtotime($t["end_time"]) - time();
-                        if ($timeDiff <= 3600 * 24 * 3) {
-                            $statusLabel = "⏳ Sắp đến hạn";
-                        } else {
-                            $statusLabel = "🔄 Đang tiến hành";
-                        }
-                    }
-                    
-                    if ($isNew) {
-                        $statusLabel = "🆕 Mới thêm - " . $statusLabel;
-                    }
-                    ?>
-                        <h3 style="display: flex;gap: 5px; align-items: center;"><img style="width: 30px;height: 30px;" class="small-icon" src="../assets/icon/task.png" alt="">
-                          <?= htmlspecialchars($t['title']) ?>
-                        </h3>
-
-                        <p><?= nl2br(htmlspecialchars($t['content'])) ?></p>
-
-                        <p style="display: flex;gap: 5px; align-items: center;">
-                            <img class="small-icon" src="../assets/icon/clock.png" alt=""> 
-                            Bắt đầu: 
-                            <b><?= date('d/m/Y H:i', strtotime($t['start_time'])) ?></b>
-                        </p>
-
-                       <p style="display: flex;gap: 5px; align-items: center;">
-                        <img style="width: 22px;height: 22px;" class="small-icon" src="../assets/icon/rocket.png" alt="">
-                         Hạn chót: 
-                        <b><?= $t['end_time'] ? date('d/m/Y H:i', strtotime($t['end_time'])) : '♾️ Vô thời hạn' ?></b>
-                    </p>
-                        <?php if ($t['end_time'] && $t['progress'] < 100): 
-                            $timeDiff = strtotime($t['end_time']) - time();
-                            $absTime = abs($timeDiff);
-                            $days = floor($absTime / 86400);
-                            $hours = floor(($absTime % 86400) / 3600);
-                            $timeText = $days > 0 ? $days . ' ngày ' . $hours . ' giờ' : $hours . ' giờ';
-                        ?>
-                        <p style="display: flex;gap: 5px; align-items: center;">
-
-                        <img class="small-icon" src="../assets/icon/calende 2.png"> 
-                         Còn lại: 
-                         <b style="color: <?= $timeDiff < 0 ? '#d63031' : ($absTime <= 259200 ? '#fdcb6e' : '#00b894') ?>"><?= $timeDiff < 0 ? 'Trễ ' . $timeText : $timeText ?></b></p>
-                        <?php endif ?>
-                        <p>🎯 Tiến độ: <b><?= $t['progress'] ?>%</b></p>
-                        <p style="display: flex;gap: 5px; align-items: center;">
-                    <img style="width: 20px;height: 20px;" class="small-icon" src="../assets/icon/pin.png" alt=""> 
-                     Trạng thái: <b><?= $statusLabel ?></b></p>
-                        <a href="edit.php?id=<?= $t['id'] ?>" class="btn small">Sửa</a>
-                        <a href="../actions/delete.php?id=<?= $t['id'] ?>&from=search&name=<?= urlencode($name) ?>&day=<?= urlencode($day) ?>&month=<?= urlencode($month) ?>&year=<?= urlencode($year) ?>&time=<?= urlencode($time) ?>&status=<?= urlencode($status) ?>&page=<?= $page ?>" class="btn small red">Xóa</a>
-                    </div>
-                <?php endforeach ?>
-            </div>
+    <div class="day-box">
+        <div class="task-container">
+            <?php 
+            $now = time();
+            $today = date("Y-m-d");
+            foreach ($tasks as $t): 
+                include '../includes/task_item.php';
+            endforeach; 
+            ?>
         </div>
-    <?php endforeach ?>
-<?php endif ?>
-</div>
-
-<?php if ($hasFilter && $totalPages > 1): ?>
-<div class="pagination">
-    <?php if ($page > 1): ?>
-        <a href="?page=<?= $page-1 ?>&name=<?= urlencode($name) ?>&day=<?= urlencode($day) ?>&month=<?= urlencode($month) ?>&year=<?= urlencode($year) ?>&time=<?= urlencode($time) ?>&status=<?= urlencode($status) ?>">«</a>
-    <?php endif ?>
-
-    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-        <a href="?page=<?= $i ?>&name=<?= urlencode($name) ?>&day=<?= urlencode($day) ?>&month=<?= urlencode($month) ?>&year=<?= urlencode($year) ?>&time=<?= urlencode($time) ?>&status=<?= urlencode($status) ?>" class="<?= ($i == $page ? 'active' : '') ?>">
-            <?= $i ?>
-        </a>
-    <?php endfor ?>
-
-    <?php if ($page < $totalPages): ?>
-        <a href="?page=<?= $page+1 ?>&name=<?= urlencode($name) ?>&day=<?= urlencode($day) ?>&month=<?= urlencode($month) ?>&year=<?= urlencode($year) ?>&time=<?= urlencode($time) ?>&status=<?= urlencode($status) ?>">»</a>
-    <?php endif ?>
-</div>
+    </div>
 <?php endif ?>
 
-<script src="../script.js"></script>
 
-</body>
-</html>
+<?php 
+if ($hasFilter) {
+    $queryParams = '&sort=' . ($sort ?? 'created') . '&name=' . urlencode($name) . '&day=' . urlencode($day) . '&month=' . urlencode($month) . '&year=' . urlencode($year) . '&status=' . urlencode($status);
+    include '../includes/pagination.php';
+}
+?>
+
+<?php include "../includes/footer.php"; ?>
+
